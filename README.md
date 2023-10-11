@@ -31,53 +31,14 @@ ORDER BY 1;
 |1904|Summer|St. Louis             |
 1906|Summer|Athina                |
 1908|Summer|London                |
-1912|Summer|Stockholm             |
-1920|Summer|Antwerpen             |
-1924|Summer|Paris                 |
-1924|Winter|Chamonix              |
-1928|Summer|Amsterdam             |
-1928|Winter|Sankt Moritz          |
-1932|Summer|Los Angeles           |
-1932|Winter|Lake Placid           |
-1936|Summer|Berlin                |
-1936|Winter|Garmisch-Partenkirchen|
-1948|Summer|London                |
-1948|Winter|Sankt Moritz          |
-1952|Summer|Helsinki              |
-1952|Winter|Oslo                  |
-1956|Summer|Melbourne             |
-1956|Summer|Stockholm             |
-1956|Winter|Cortina d'Ampezzo     |
-1960|Summer|Roma                  |
-1960|Winter|Squaw Valley          |
-1964|Summer|Tokyo                 |
-1964|Winter|Innsbruck             |
-1968|Summer|Mexico City           |
-1968|Winter|Grenoble              |
-1972|Summer|Munich                |
-1972|Winter|Sapporo               |
-1976|Summer|Montreal              |
-1976|Winter|Innsbruck             |
-1980|Summer|Moskva                |
-1980|Winter|Lake Placid           |
-1984|Summer|Los Angeles           |
-1984|Winter|Sarajevo              |
-1988|Summer|Seoul                 |
-1988|Winter|Calgary               |
-1992|Summer|Barcelona             |
-1992|Winter|Albertville           |
-1994|Winter|Lillehammer           |
-1996|Summer|Atlanta               |
-1998|Winter|Nagano                |
-2000|Summer|Sydney                |
-2002|Winter|Salt Lake City        |
-2004|Summer|Athina                |
-2006|Winter|Torino                |
+....|......|.....................|
 2008|Summer|Beijing               |
 2010|Winter|Vancouver             |
 2012|Summer|London                |
 2014|Winter|Sochi                 |
 2016|Summer|Rio de Janeiro        |
+
+52 rows fetched. Shows some data.
 
 ### Mention the total no of nations who participated in each olympics game?
 ```sql
@@ -100,52 +61,14 @@ games      |number_of_nations|
 1904 Summer|               14|
 1906 Summer|               20|
 1908 Summer|               22|
-1912 Summer|               28|
-1920 Summer|               29|
-1924 Summer|               45|
-1924 Winter|               19|
-1928 Summer|               46|
-1928 Winter|               25|
-1932 Summer|               47|
-1932 Winter|               17|
-1936 Summer|               49|
-1936 Winter|               28|
-1948 Summer|               58|
-1948 Winter|               28|
-1952 Summer|               66|
-1952 Winter|               30|
-1956 Summer|               70|
-1956 Winter|               32|
-1960 Summer|               82|
-1960 Winter|               30|
-1964 Summer|               93|
-1964 Winter|               36|
-1968 Summer|              110|
-1968 Winter|               36|
-1972 Summer|              119|
-1972 Winter|               34|
-1976 Summer|               90|
-1976 Winter|               36|
-1980 Summer|               80|
-1980 Winter|               36|
-1984 Summer|              138|
-1984 Winter|               48|
-1988 Summer|              155|
-1988 Winter|               56|
-1992 Summer|              167|
-1992 Winter|               64|
-1994 Winter|               67|
-1996 Summer|              195|
-1998 Winter|               72|
-2000 Summer|              198|
-2002 Winter|               76|
-2004 Summer|              199|
-2006 Winter|               78|
+...........|.................|
 2008 Summer|              201|
 2010 Winter|               81|
 2012 Summer|              202|
 2014 Winter|               88|
 2016 Summer|              203|
+
+51 rows fetched. Shows some data.
 
 ### Which Sports were just played only once in the olympics?
 ```sql
@@ -154,7 +77,7 @@ SELECT
   DISTINCT games,
   sport
 FROM
-  athlete_events ae
+  athlete_events
 ),
 t2 AS (
 SELECT
@@ -191,3 +114,257 @@ Motorboating       |          1|1908 Summer|
 Racquets           |          1|1908 Summer|
 Roque              |          1|1904 Summer|
 Rugby Sevens       |          1|2016 Summer|
+
+### Fetch the total no of sports played in each olympic games.
+```sql
+SELECT
+  games,
+  COUNT(DISTINCT sport) AS number_of_sports
+FROM
+  athlete_events 
+GROUP BY 1
+ORDER BY 2 DESC;
+```
+games      |number_of_sports|
+-----------|----------------|
+2008 Summer|              34|
+2000 Summer|              34|
+2004 Summer|              34|
+2016 Summer|              34|
+2012 Summer|              32|
+............|...............|
+1960 Winter|               8|
+1952 Winter|               8|
+1936 Winter|               8|
+1928 Winter|               8|
+1932 Winter|               7|
+
+51 rows fetched. Shows some data.
+
+### Fetch details of the oldest athletes to win a gold medal.
+```sql
+WITH gold_by_age AS (
+SELECT
+  *,
+DENSE_RANK() OVER(ORDER BY age DESC) AS age_rank
+FROM
+  athlete_events 
+WHERE
+  medal = 'Gold' AND age IS NOT NULL
+ORDER BY age DESC
+)
+
+SELECT
+  name,
+  sex,
+  age,
+  team,
+  noc,
+  games,
+  year,
+  season,
+  city,
+  sport,
+  medal
+FROM
+  gold_by_age
+WHERE
+  age_rank = 1;
+```
+
+name             |sex|age|team         |noc|games      |year|season|city     |sport   |medal|
+-----------------|---|---|-------------|---|-----------|----|------|---------|--------|-----|
+Charles Jacobus  |M  | 64|United States|USA|1904 Summer|1904|Summer|St. Louis|Roque   |Gold |
+Oscar Gomer Swahn|M  | 64|Sweden       |SWE|1912 Summer|1912|Summer|Stockholm|Shooting|Gold |
+
+### Fetch the top 5 athletes who have won the most gold medals.
+```sql
+SELECT
+  name,
+  COUNT(medal) AS no_of_gold_medal
+FROM
+  athlete_events 
+WHERE
+  medal = 'Gold'
+GROUP BY name
+ORDER BY no_of_gold_medal DESC
+LIMIT 5;
+```
+name                          |no_of_gold_medal|
+------------------------------|----------------|
+Michael Fred Phelps, II       |              23|
+Raymond Clarence "Ray" Ewry   |              10|
+Frederick Carlton "Carl" Lewis|               9|
+Paavo Johannes Nurmi          |               9|
+Mark Andrew Spitz             |               9|
+
+### Fetch the top 5 athletes who have won the most medals (gold/silver/bronze).
+```sql
+SELECT
+  name,
+  COUNT(medal) AS no_of_medal
+FROM
+  athlete_events
+WHERE
+  medal IS NOT NULL
+GROUP BY name
+ORDER BY no_of_medal DESC
+LIMIT 5;
+```
+name                              |no_of_medal|
+----------------------------------|-----------|
+Michael Fred Phelps, II           |         28|
+Larysa Semenivna Latynina (Diriy-)|         18|
+Nikolay Yefimovich Andrianov      |         15|
+Ole Einar Bjrndalen               |         13|
+Takashi Ono                       |         13|
+
+### Fetch the top 5 most successful countries in olympics. Success is defined by no of medals won.
+```sql
+SELECT
+  nr.region,
+COUNT(medal) AS no_of_medal
+FROM
+  athlete_events ae 
+JOIN
+  noc_regions nr
+ON
+  ae.noc = nr.noc 
+WHERE
+  medal IS NOT NULL
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 5;
+```
+region |no_of_medal|
+-------|-----------|
+USA    |       5637|
+Russia |       3947|
+Germany|       3756|
+UK     |       2068|
+France |       1777|
+
+### List down total gold, silver and broze medals won by each country.
+```sql
+SELECT
+  nr.region,
+  COUNT(CASE WHEN medal = 'Gold' THEN 1 END) AS no_of_gold_medal,
+  COUNT(CASE WHEN medal = 'Silver' THEN 1 END) AS no_of_silver_medal,
+  COUNT(CASE WHEN medal = 'Bronze' THEN 1 END) AS no_of_bronze_medal
+FROM 
+  athlete_events ae 
+JOIN 
+  noc_regions nr 
+ON 
+  ae.noc = nr.noc
+WHERE medal IS NOT NULL 
+GROUP BY 1
+ORDER BY 2 DESC 
+LIMIT 5;
+```
+
+region |no_of_gold_medal|no_of_silver_medal|no_of_bronze_medal|
+-------|----------------|------------------|------------------|
+USA    |            2638|              1641|              1358|
+Russia |            1599|              1170|              1178|
+Germany|            1301|              1195|              1260|
+UK     |             678|               739|               651|
+Italy  |             575|               531|               531|
+
+
+### List down total gold, silver and broze medals won by each country corresponding to each olympic games.
+```sql
+SELECT
+  games,
+  nr.region,
+  COUNT(CASE WHEN medal = 'Gold' THEN 1 END) AS no_of_gold_medal,
+  COUNT(CASE WHEN medal = 'Silver' THEN 1 END) AS no_of_silver_medal,
+COUNT(CASE WHEN medal = 'Bronze' THEN 1 END) AS no_of_bronze_medal
+FROM
+  athlete_events ae 
+JOIN
+  noc_regions nr
+ON ae.noc = nr.noc
+WHERE medal IS NOT NULL 
+GROUP BY 1,2
+ORDER BY 1 ASC, 3 DESC, 4 DESC, 5 DESC;
+```
+
+games      |region                     |no_of_gold_medal|no_of_silver_medal|no_of_bronze_medal|
+-----------|---------------------------|----------------|------------------|------------------|
+1896 Summer|Germany                    |              25|                 5|                 2|
+1896 Summer|USA                        |              11|                 7|                 2|
+1896 Summer|Greece                     |              10|                18|                20|
+1896 Summer|France                     |               5|                 4|                 2|
+1896 Summer|UK                         |               3|                 3|                 3|
+1896 Summer|Hungary                    |               2|                 1|                 3|
+..........|...........................|.................|..................|..................|
+2016 Summer|Dominican Republic         |               0|                 0|                 1|
+2016 Summer|Morocco                    |               0|                 0|                 1|
+2016 Summer|Portugal                   |               0|                 0|                 1|
+2016 Summer|United Arab Emirates       |               0|                 0|                 1|
+2016 Summer|Finland                    |               0|                 0|                 1|
+
+1640 rows fetched, show some data
+
+--Which countries have never won gold medal but have won silver/bronze medals?
+```sql
+WITH medal_count AS (SELECT
+  nr.region,
+  COUNT(CASE WHEN medal = 'Gold' THEN 1 END) AS no_of_gold_medal,
+  COUNT(CASE WHEN medal = 'Silver' THEN 1 END) AS no_of_silver_medal,
+  COUNT(CASE WHEN medal = 'Bronze' THEN 1 END) AS no_of_bronze_medal
+FROM
+  athlete_events ae 
+JOIN
+  noc_regions nr
+ON
+  ae.noc = nr.noc
+WHERE medal IS NOT NULL 
+GROUP BY 1)
+
+SELECT
+  region,
+  no_of_gold_medal,
+  no_of_silver_medal,
+  no_of_bronze_medal
+FROM
+  medal_count
+WHERE
+  no_of_gold_medal = 0 AND (no_of_silver_medal >=1 OR no_of_bronze_medal >= 1)
+ORDER BY 3 DESC, 4 DESC;
+```
+
+region            |no_of_gold_medal|no_of_silver_medal|no_of_bronze_medal|
+------------------|----------------|------------------|------------------|
+Paraguay          |               0|                17|                 0|
+Iceland           |               0|                15|                 2|
+Montenegro        |               0|                14|                 0|
+Malaysia          |               0|                11|                 5|
+Namibia           |               0|                 4|                 0|
+..................|...............|...................|.................|
+Mauritius         |               0|                 0|                 1|
+Barbados          |               0|                 0|                 1|
+Togo              |               0|                 0|                 1|
+Guyana            |               0|                 0|                 1|
+Macedonia         |               0|                 0|                 1|
+Iraq              |               0|                 0|                 1|
+
+37 rows fetced, show some data.
+
+### --In which Sport/event, Indonesia has won highest medals.
+```sql
+SELECT
+  sport,
+  COUNT(medal) AS medal_count
+FROM 
+	athlete_events ae 
+WHERE 
+	team = 'Indonesia' AND medal IS NOT NULL
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 1
+```
+sport    |medal_count|
+---------|-----------|
+Badminton|         14|
